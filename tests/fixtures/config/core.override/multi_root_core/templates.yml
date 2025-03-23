@@ -12,17 +12,21 @@ keys:
   timestamp: {type: str}
   version: {format_spec: '03', type: int}
   width: {type: int}
+  houdini_extension:
+    type: str
+    choices: { 'hip': 'Houdini file (.hip)', 'hipnc': 'Houdini file (.hipnc)' , 'hiplc': 'Houdini file (.hiplc)' }
+    default: hip
 paths:
   asset_project: {definition: 'assets/{Asset}/{Step}/work'}
-  houdini_asset_publish: {definition: 'assets/{Asset}/{Step}/publish/{alpha_name}.v{version}.hip',
+  houdini_asset_publish: {definition: 'assets/{Asset}/{Step}/publish/{alpha_name}.v{version}.{houdini_extension}',
                          root_name: alternate_1}
-  houdini_asset_snapshot: {definition: 'assets/{Asset}/{Step}/work/snapshots/{alpha_name}.v{version}.{timestamp}.hip'}
-  houdini_asset_work: {definition: 'assets/{Asset}/{Step}/work/{alpha_name}.v{version}.hip'}
+  houdini_asset_snapshot: {definition: 'assets/{Asset}/{Step}/work/snapshots/{alpha_name}.v{version}.{timestamp}.{houdini_extension}'}
+  houdini_asset_work: {definition: 'assets/{Asset}/{Step}/work/{alpha_name}.v{version}.{houdini_extension}'}
   shot_project: {definition: 'sequences/{Sequence}/{Shot}/{Step}/work'}
-  houdini_shot_publish: {definition: 'sequences/{Sequence}/{Shot}/{Step}/publish/{name}.v{version}.hip',
+  houdini_shot_publish: {definition: 'sequences/{Sequence}/{Shot}/{Step}/publish/{name}.v{version}.{houdini_extension}',
                         root_name: alternate_1}
-  houdini_shot_snapshot: {definition: 'sequences/{Sequence}/{Shot}/{Step}/work/snapshots/{name}.v{version}.{timestamp}.hip'}
-  houdini_shot_work: {definition: 'sequences/{Sequence}/{Shot}/{Step}/work/{alpha_name}.v{version}.hip'}
+  houdini_shot_snapshot: {definition: 'sequences/{Sequence}/{Shot}/{Step}/work/snapshots/{name}.v{version}.{timestamp}.{houdini_extension}'}
+  houdini_shot_work: {definition: 'sequences/{Sequence}/{Shot}/{Step}/work/{alpha_name}.v{version}.{houdini_extension}'}
   maya_asset_publish: {definition: 'assets/{Asset}/{Step}/publish/{name}.v{version}.ma',
                       root_name: alternate_1}
   maya_asset_snapshot: {definition: 'assets/{Asset}/{Step}/work/snapshots/{name}.v{version}.{timestamp}.ma'}
