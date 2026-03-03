@@ -25,6 +25,12 @@ article.
 ----------------
 Overrides the location where Toolkit stores data, which includes bootstrap data as well as bundle cache, cached thumbnails and other temp files.
 
+``SHOTGUN_SKIP_QTWEBENGINEWIDGETS_IMPORT``
+------------------------------------------
+Use this variable to prevent Toolkit from importing the QtWebEngine modules when
+importing the PySide2/PySide6 modules.
+This variable is useful when a DCC deadlocks while importing the module.
+
 ``SGTK_PREFERENCES_LOCATION``
 -----------------------------
 Allows you to store your configuration file somewhere else on your computer or on your network. See the `documentation here <https://help.autodesk.com/view/SGDEV/ENU/?guid=SGD_pg_integrations_admin_guides_integrations_admin_guide_html#toolkit-configuration-file>`_.
@@ -38,6 +44,20 @@ Low level bypass to set the configuration desciptor URI that the bootstrap API s
 Controls debug logging.
 
 .. _environment_variables_authentication:
+
+``SHOTGUN_ALLOW_OLD_PYTHON``
+----------------------------
+
+When set to ``1``, Toolkit will allow being imported from Python versions that are no longer supported.
+Otherwise, when unset (or set to any other value), attempting to import Toolkit from old unsupported Python version will
+raise an exception.
+
+This is not recommended and should only be used for testing purposes.
+
+.. important::
+    The ability to import the module does not guarantee that Toolkit will work properly on the unsupported Python
+    version. In fact, it is very likely that it will not work properly.
+
 
 Authentication
 ==============

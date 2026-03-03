@@ -8,9 +8,11 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
+import types
+import warnings
+
 from .pyside2_patcher import PySide2Patcher
 
-import imp
 
 class PySide6Patcher(PySide2Patcher):
     """
@@ -96,7 +98,13 @@ class PySide6Patcher(PySide2Patcher):
 
             @staticmethod
             def setCodecForCStrings(codec):
-                pass
+                warnings.warn(
+                    "QTextCodec.setCodecForCStrings() is obsolete and no longer exists since Qt6/PySide6. "
+                    "This method will be removed from Toolkit after December 2026. "
+                    "Please remove calls to this method from your code.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
 
         QtCore.QTextCodec = QTextCodec
 
@@ -443,7 +451,11 @@ class PySide6Patcher(PySide2Patcher):
         QtCore.QCoreApplication.flush = flush
 
     @classmethod
-    def patch(cls):
+    def patch(
+            cls,
+            QtWebEngineWidgets,
+            QtWebEngineCore,
+    ):
         """
         Patch the PySide6 modules, classes and function to conform to the PySide interface.
 
@@ -465,14 +477,17 @@ class PySide6Patcher(PySide2Patcher):
             QtGui,
             QtWidgets,
             QtOpenGL,
-            QtWebEngineWidgets,
-            QtWebEngineCore,
         )
 
         # First create new modules to act as the PySide modules
-        qt_core_shim = imp.new_module("PySide.QtCore")
-        qt_gui_shim = imp.new_module("PySide.QtGui")
-        qt_web_engine_widgets_shim = imp.new_module("PySide.QtWebEnginWidgets")
+        qt_core_shim = types.ModuleType("PySide.QtCore")
+        qt_gui_shim = types.ModuleType("PySide.QtGui")
+
+        qt_web_engine_widgets_shim = None
+        if QtWebEngineWidgets:
+            qt_web_engine_widgets_shim = types.ModuleType(
+                "PySide.QtWebEngineWidgets",
+            )
 
         # Move everything from QtGui and QtWidgets to the QtGui shim since they belonged there
         # in PySide.
@@ -491,8 +506,13 @@ class PySide6Patcher(PySide2Patcher):
         # https://doc.qt.io/qt-6/gui-changes-qt6.html#opengl-classes
         cls._move_attributes(qt_gui_shim, QtOpenGL, cls._opengl_to_gui)
 
-        # Move everything from QtWebEngineWidgets to the QtWebEngineWidgets shim
-        cls._move_attributes(qt_web_engine_widgets_shim, QtWebEngineWidgets, dir(QtWebEngineWidgets))
+        if qt_web_engine_widgets_shim:
+            # Move everything from QtWebEngineWidgets to the QtWebEngineWidgets shim
+            cls._move_attributes(
+                qt_web_engine_widgets_shim,
+                QtWebEngineWidgets,
+                dir(QtWebEngineWidgets),
+            )
 
         # Patch classes from PySide6 to PySide, as done for PySide2 (these will call the
         # PySide2 patcher methods.)
@@ -536,6 +556,10 @@ class PySide6Patcher(PySide2Patcher):
 
         # QtGui
         # ------------------------------------------------------------------------------------
+
+        # Prevent warnings log with exec_ - TODO FUTURE remove this once done with PySide2
+        qt_gui_shim.QApplication.exec_ = qt_gui_shim.QApplication.exec
+        qt_gui_shim.QDialog.exec_ = qt_gui_shim.QDialog.exec
 
         # QLabel cannot be instantiated with None anymore
         cls._patch_QPixmap(qt_gui_shim)
@@ -582,9 +606,9 @@ class PySide6Patcher(PySide2Patcher):
         # https://doc.qt.io/qt-5/qpalette.html#ColorRole-enum
         qt_gui_shim.QPalette.Background = qt_gui_shim.QPalette.Window
 
-        # QtWwebEngineWidgets
-        # ----------------------------------------------------------------------
-        qt_web_engine_widgets_shim.QWebEnginePage = QtWebEngineCore.QWebEnginePage
-        qt_web_engine_widgets_shim.QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
+        if qt_web_engine_widgets_shim:
+            # QtWwebEngineWidgets
+            qt_web_engine_widgets_shim.QWebEnginePage = QtWebEngineCore.QWebEnginePage
+            qt_web_engine_widgets_shim.QWebEngineProfile = QtWebEngineCore.QWebEngineProfile
 
         return qt_core_shim, qt_gui_shim, qt_web_engine_widgets_shim
